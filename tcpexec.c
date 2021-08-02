@@ -8,7 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define TCPEXEC_VERSION "0.1.0"
+#define TCPEXEC_VERSION "0.1.1"
 
 typedef struct {
   int verbose;
@@ -164,7 +164,6 @@ static int conninfo(const tcpexec_state_t *tp, const struct sockaddr *sa,
   int rv;
 
   if (salen < sizeof(struct sockaddr)) {
-    (void)fprintf(stderr, "invalid socket length\n");
     errno = EINVAL;
     return -1;
   }
@@ -178,7 +177,7 @@ static int conninfo(const tcpexec_state_t *tp, const struct sockaddr *sa,
   switch (sa->sa_family) {
   case AF_INET:
     if (salen != sizeof(struct sockaddr_in)) {
-      (void)fprintf(stderr, "invalid IPv4 socket length\n");
+      errno = EINVAL;
       return -1;
     }
     rv = snprintf(portstr, sizeof(portstr), "%u",
@@ -201,7 +200,7 @@ static int conninfo(const tcpexec_state_t *tp, const struct sockaddr *sa,
     return 0;
   case AF_INET6:
     if (salen != sizeof(struct sockaddr_in6)) {
-      (void)fprintf(stderr, "invalid IPv6 socket length\n");
+      errno = EINVAL;
       return -1;
     }
     rv = snprintf(portstr, sizeof(portstr), "%u",
@@ -224,8 +223,7 @@ static int conninfo(const tcpexec_state_t *tp, const struct sockaddr *sa,
     break;
   }
 
-  (void)fprintf(stderr, "unknown socket protocol\n");
-  errno = EINVAL;
+  errno = EAFNOSUPPORT;
   return -1;
 }
 
