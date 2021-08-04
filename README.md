@@ -1,6 +1,6 @@
 # SYNOPSIS
 
-tcpexec *[OPTION]* *[<IPADDR>:]<PORT>* *<COMMAND>* *<...>*
+tcpexec [*OPTION*] [*IPADDR:*]*PORT* *COMMAND* *...*
 
 # DESCRIPTION
 
