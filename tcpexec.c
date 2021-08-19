@@ -35,8 +35,7 @@ static const struct option long_options[] = {
 };
 
 static int tcpexec_listen(const char *addr, const char *port);
-static int conninfo(const tcpexec_state_t *tp, const struct sockaddr *sa,
-                    socklen_t salen);
+static int conninfo(const tcpexec_state_t *tp, const struct sockaddr *sa);
 static void usage(void);
 
 int main(int argc, char *argv[]) {
@@ -105,8 +104,7 @@ int main(int argc, char *argv[]) {
   if (fd < 0)
     err(111, "accept");
 
-  if (conninfo((const tcpexec_state_t *)&tp, (const struct sockaddr *)&sa,
-               salen) < 0)
+  if (conninfo((const tcpexec_state_t *)&tp, (const struct sockaddr *)&sa) < 0)
     err(111, "conninfo");
 
   if ((dup2(fd, STDOUT_FILENO) < 0) || (dup2(fd, STDIN_FILENO) < 0))
@@ -171,16 +169,11 @@ static int tcpexec_listen(const char *addr, const char *port) {
   return fd;
 }
 
-static int conninfo(const tcpexec_state_t *tp, const struct sockaddr *sa,
-                    socklen_t salen) {
+static int conninfo(const tcpexec_state_t *tp, const struct sockaddr *sa) {
   char addrstr[INET6_ADDRSTRLEN] = {0};
   char portstr[6];
   int rv;
 
-  if (salen < sizeof(struct sockaddr)) {
-    errno = EINVAL;
-    return -1;
-  }
   if (setenv("PROTO", "TCP", 1) == -1) {
     return -1;
   }
@@ -190,10 +183,6 @@ static int conninfo(const tcpexec_state_t *tp, const struct sockaddr *sa,
   }
   switch (sa->sa_family) {
   case AF_INET:
-    if (salen != sizeof(struct sockaddr_in)) {
-      errno = EINVAL;
-      return -1;
-    }
     rv = snprintf(portstr, sizeof(portstr), "%u",
                   ntohs(((const struct sockaddr_in *)sa)->sin_port));
     if (rv < 0 || rv > sizeof(portstr)) {
@@ -213,10 +202,6 @@ static int conninfo(const tcpexec_state_t *tp, const struct sockaddr *sa,
     }
     return 0;
   case AF_INET6:
-    if (salen != sizeof(struct sockaddr_in6)) {
-      errno = EINVAL;
-      return -1;
-    }
     rv = snprintf(portstr, sizeof(portstr), "%u",
                   ntohs(((const struct sockaddr_in6 *)sa)->sin6_port));
     if (rv < 0 || rv > sizeof(portstr)) {
