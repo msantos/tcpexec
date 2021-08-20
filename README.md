@@ -81,3 +81,9 @@ TCPREMOTEIP
 
 TCPREMOTEPORT
 : source port
+
+TCPLOCALIP
+: destination IPv4 or IPv6 address
+
+TCPLOCALPORT
+: destination port

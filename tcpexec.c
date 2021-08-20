@@ -35,7 +35,8 @@ static const struct option long_options[] = {
 };
 
 static int tcpexec_listen(const char *addr, const char *port);
-static int conninfo(const tcpexec_state_t *tp, const struct sockaddr *sa);
+static int setremoteenv(const tcpexec_state_t *tp, const struct sockaddr *sa);
+static int setlocalenv(const tcpexec_state_t *tp, const struct sockaddr *sa);
 static void usage(void);
 
 int main(int argc, char *argv[]) {
@@ -44,6 +45,8 @@ int main(int argc, char *argv[]) {
   int fd;
   struct sockaddr_storage sa;
   socklen_t salen = sizeof(sa);
+  struct sockaddr_storage sn;
+  socklen_t snlen = sizeof(sn);
   char *addr;
   char *port;
   char *p;
@@ -104,8 +107,16 @@ int main(int argc, char *argv[]) {
   if (fd < 0)
     err(111, "accept");
 
-  if (conninfo((const tcpexec_state_t *)&tp, (const struct sockaddr *)&sa) < 0)
-    err(111, "conninfo");
+  if (setremoteenv((const tcpexec_state_t *)&tp, (const struct sockaddr *)&sa) <
+      0)
+    err(111, "setremoteenv");
+
+  if (getsockname(fd, (struct sockaddr *)&sn, &snlen) == -1)
+    err(111, "getsockname");
+
+  if (setlocalenv((const tcpexec_state_t *)&tp, (const struct sockaddr *)&sn) <
+      0)
+    err(111, "setlocalenv");
 
   if ((dup2(fd, STDOUT_FILENO) < 0) || (dup2(fd, STDIN_FILENO) < 0))
     err(111, "dup2");
@@ -169,7 +180,7 @@ static int tcpexec_listen(const char *addr, const char *port) {
   return fd;
 }
 
-static int conninfo(const tcpexec_state_t *tp, const struct sockaddr *sa) {
+static int setremoteenv(const tcpexec_state_t *tp, const struct sockaddr *sa) {
   char addrstr[INET6_ADDRSTRLEN] = {0};
   char portstr[6];
   int rv;
@@ -177,8 +188,7 @@ static int conninfo(const tcpexec_state_t *tp, const struct sockaddr *sa) {
   if (setenv("PROTO", "TCP", 1) == -1) {
     return -1;
   }
-  if ((unsetenv("TCPLOCALHOST") == -1) || (unsetenv("TCPREMOTEHOST") == -1) ||
-      (unsetenv("TCPREMOTEINFO") == -1)) {
+  if ((unsetenv("TCPREMOTEHOST") == -1) || (unsetenv("TCPREMOTEINFO") == -1)) {
     return -1;
   }
   switch (sa->sa_family) {
@@ -189,7 +199,7 @@ static int conninfo(const tcpexec_state_t *tp, const struct sockaddr *sa) {
       return -1;
     }
     if (tp->verbose > 0)
-      (void)fprintf(stderr, "%s:%s\n",
+      (void)fprintf(stderr, "remote:%s:%s\n",
                     inet_ntoa(((const struct sockaddr_in *)sa)->sin_addr),
                     portstr);
     if (setenv("TCPREMOTEIP",
@@ -210,11 +220,64 @@ static int conninfo(const tcpexec_state_t *tp, const struct sockaddr *sa) {
     (void)inet_ntop(AF_INET6, &(((const struct sockaddr_in6 *)sa)->sin6_addr),
                     addrstr, sizeof(addrstr));
     if (tp->verbose > 0)
-      (void)fprintf(stderr, "[%s]:%s\n", addrstr, portstr);
+      (void)fprintf(stderr, "remote:[%s]:%s\n", addrstr, portstr);
     if (setenv("TCPREMOTEIP", addrstr, 1) == -1) {
       return -1;
     }
     if (setenv("TCPREMOTEPORT", portstr, 1) == -1) {
+      return -1;
+    }
+    return 0;
+  default:
+    break;
+  }
+
+  errno = EAFNOSUPPORT;
+  return -1;
+}
+
+static int setlocalenv(const tcpexec_state_t *tp, const struct sockaddr *sa) {
+  char addrstr[INET6_ADDRSTRLEN] = {0};
+  char portstr[6];
+  int rv;
+
+  if (unsetenv("TCPLOCALHOST") == -1)
+    return -1;
+
+  switch (sa->sa_family) {
+  case AF_INET:
+    rv = snprintf(portstr, sizeof(portstr), "%u",
+                  ntohs(((const struct sockaddr_in *)sa)->sin_port));
+    if (rv < 0 || rv > sizeof(portstr)) {
+      return -1;
+    }
+    if (tp->verbose > 0)
+      (void)fprintf(stderr, "local:%s:%s\n",
+                    inet_ntoa(((const struct sockaddr_in *)sa)->sin_addr),
+                    portstr);
+    if (setenv("TCPLOCALIP",
+               inet_ntoa(((const struct sockaddr_in *)sa)->sin_addr),
+               1) == -1) {
+      return -1;
+    }
+    if (setenv("TCPLOCALPORT", portstr, 1) == -1) {
+      return -1;
+    }
+    return 0;
+  case AF_INET6:
+    rv = snprintf(portstr, sizeof(portstr), "%u",
+                  ntohs(((const struct sockaddr_in6 *)sa)->sin6_port));
+    if (rv < 0 || rv > sizeof(portstr)) {
+      return -1;
+    }
+    (void)inet_ntop(AF_INET6, &(((const struct sockaddr_in6 *)sa)->sin6_addr),
+                    addrstr, sizeof(addrstr));
+    if (tp->verbose > 0)
+      (void)fprintf(stderr, "local:[%s]:%s\n", addrstr, portstr);
+    if (setenv("TCPLOCALIP", addrstr, 1) == -1) {
+      return -1;
+    }
+    if (setenv("TCPLOCALPORT", portstr, 1) == -1) {
       return -1;
     }
     return 0;
