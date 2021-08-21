@@ -6,13 +6,13 @@ tcpexec [*OPTION*] [*IPADDR:*]*PORT* *COMMAND* *...*
 
 tcpexec: a minimal, [UCSPI](https://jdebp.uk/FGA/UCSPI.html) inetd
 
-`tcpexec` attaches the stdin/stdout of a command to a TCP socket:
+`tcpexec` attaches the standard input and output of a command to a
+TCP socket:
 
-* immediately exec(3)'s the command: data is not proxied between file
-  descriptors
+* exec(3): data is not proxied via an intermediary process
 
-* uses `SO_REUSEPORT` to allow processes to listen concurrently on the
-  same port
+* `SO_REUSEPORT`: multiple processes concurrently listen and accept data
+  on the same port
 
 # EXAMPLES
 
@@ -20,6 +20,10 @@ tcpexec: a minimal, [UCSPI](https://jdebp.uk/FGA/UCSPI.html) inetd
 
 ```
 $ tcpexec 9090 cat
+
+$ tcpexec 127.0.0.1:9090 cat
+
+$ tcpexec ::1:9090 env
 ```
 
 ## Supervised using daemontools
@@ -34,19 +38,25 @@ An echo server allowing 3 concurrent connections:
     └── echo3
         └── run
 
-``` service/echo1/run
+*  service/echo1/run
+
+```
 #!/bin/sh
 
 exec tcpexec 127.0.0.1:9090 cat
 ```
 
-``` service/echo2/run
+* service/echo2/run
+
+```
 #!/bin/sh
 
 exec tcpexec 127.0.0.1:9090 cat
 ```
 
-``` service/echo3/run
+* service/echo3/run
+
+```
 #!/bin/sh
 
 exec tcpexec 127.0.0.1:9090 cat
