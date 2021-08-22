@@ -19,6 +19,7 @@
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdnoreturn.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -37,7 +38,7 @@ static const struct option long_options[] = {
 static int tcpexec_listen(const char *addr, const char *port);
 static int setremoteenv(const tcpexec_state_t *tp, const struct sockaddr *sa);
 static int setlocalenv(const tcpexec_state_t *tp, const struct sockaddr *sa);
-static void usage(void);
+static noreturn void usage(void);
 
 int main(int argc, char *argv[]) {
   tcpexec_state_t tp = {0};
@@ -195,7 +196,7 @@ static int setremoteenv(const tcpexec_state_t *tp, const struct sockaddr *sa) {
   case AF_INET:
     rv = snprintf(portstr, sizeof(portstr), "%u",
                   ntohs(((const struct sockaddr_in *)sa)->sin_port));
-    if (rv < 0 || rv > sizeof(portstr)) {
+    if (rv < 0 || (unsigned)rv > sizeof(portstr)) {
       return -1;
     }
     if (tp->verbose > 0)
@@ -214,7 +215,7 @@ static int setremoteenv(const tcpexec_state_t *tp, const struct sockaddr *sa) {
   case AF_INET6:
     rv = snprintf(portstr, sizeof(portstr), "%u",
                   ntohs(((const struct sockaddr_in6 *)sa)->sin6_port));
-    if (rv < 0 || rv > sizeof(portstr)) {
+    if (rv < 0 || (unsigned)rv > sizeof(portstr)) {
       return -1;
     }
     (void)inet_ntop(AF_INET6, &(((const struct sockaddr_in6 *)sa)->sin6_addr),
@@ -248,7 +249,7 @@ static int setlocalenv(const tcpexec_state_t *tp, const struct sockaddr *sa) {
   case AF_INET:
     rv = snprintf(portstr, sizeof(portstr), "%u",
                   ntohs(((const struct sockaddr_in *)sa)->sin_port));
-    if (rv < 0 || rv > sizeof(portstr)) {
+    if (rv < 0 || (unsigned)rv > sizeof(portstr)) {
       return -1;
     }
     if (tp->verbose > 0)
@@ -267,7 +268,7 @@ static int setlocalenv(const tcpexec_state_t *tp, const struct sockaddr *sa) {
   case AF_INET6:
     rv = snprintf(portstr, sizeof(portstr), "%u",
                   ntohs(((const struct sockaddr_in6 *)sa)->sin6_port));
-    if (rv < 0 || rv > sizeof(portstr)) {
+    if (rv < 0 || (unsigned)rv > sizeof(portstr)) {
       return -1;
     }
     (void)inet_ntop(AF_INET6, &(((const struct sockaddr_in6 *)sa)->sin6_addr),
@@ -289,7 +290,7 @@ static int setlocalenv(const tcpexec_state_t *tp, const struct sockaddr *sa) {
   return -1;
 }
 
-static void usage() {
+static noreturn void usage() {
   errx(EXIT_FAILURE,
        "[OPTION] [<IPADDR>:]<PORT> <COMMAND> <...>\n"
        "version: %s\n"
