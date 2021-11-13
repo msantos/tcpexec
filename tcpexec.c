@@ -101,25 +101,25 @@ int main(int argc, char *argv[]) {
   }
 
   lfd = tcpexec_listen(addr, port);
-  if (lfd < 0)
+  if (lfd == -1)
     err(111, "listen: %s:%s", addr, port);
 
   fd = accept(lfd, (struct sockaddr *)&sa, &salen);
-  if (fd < 0)
+  if (fd == -1)
     err(111, "accept");
 
-  if (setremoteenv((const tcpexec_state_t *)&tp, (const struct sockaddr *)&sa) <
-      0)
+  if (setremoteenv((const tcpexec_state_t *)&tp,
+                   (const struct sockaddr *)&sa) == -1)
     err(111, "setremoteenv");
 
   if (getsockname(fd, (struct sockaddr *)&sn, &snlen) == -1)
     err(111, "getsockname");
 
-  if (setlocalenv((const tcpexec_state_t *)&tp, (const struct sockaddr *)&sn) <
-      0)
+  if (setlocalenv((const tcpexec_state_t *)&tp, (const struct sockaddr *)&sn) ==
+      -1)
     err(111, "setlocalenv");
 
-  if ((dup2(fd, STDOUT_FILENO) < 0) || (dup2(fd, STDIN_FILENO) < 0))
+  if ((dup2(fd, STDOUT_FILENO) == -1) || (dup2(fd, STDIN_FILENO) == -1))
     err(111, "dup2");
 
   (void)execvp(argv[1], argv + 1);
@@ -154,22 +154,22 @@ static int tcpexec_listen(const char *addr, const char *port) {
   for (rp = res; rp != NULL; rp = rp->ai_next) {
     fd = socket(rp->ai_family, rp->ai_socktype | SOCK_CLOEXEC, rp->ai_protocol);
 
-    if (fd < 0)
+    if (fd == -1)
       continue;
 
-    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) < 0)
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) == -1)
       return -1;
 
-    if (setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(enable)) < 0)
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(enable)) == -1)
       return -1;
 
-    if (bind(fd, rp->ai_addr, rp->ai_addrlen) < 0)
+    if (bind(fd, rp->ai_addr, rp->ai_addrlen) == -1)
       return -1;
 
     if (listen(fd, SOMAXCONN) >= 0)
       break;
 
-    if (close(fd) < 0)
+    if (close(fd) == -1)
       return -1;
   }
 
