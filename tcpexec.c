@@ -1,4 +1,4 @@
-/* Copyright (c) 2021, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2021-2022, Michael Santos <michael.santos@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -12,18 +12,24 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include <arpa/inet.h>
+#define _GNU_SOURCE
 #include <err.h>
 #include <errno.h>
 #include <getopt.h>
-#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdnoreturn.h>
 #include <string.h>
 #include <unistd.h>
 
-#define TCPEXEC_VERSION "0.1.1"
+#include <netdb.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+
+#include <arpa/inet.h>
+#include <netinet/in.h>
+
+#define TCPEXEC_VERSION "0.2.0"
 
 typedef struct {
   int verbose;
@@ -104,7 +110,7 @@ int main(int argc, char *argv[]) {
   if (lfd == -1)
     err(111, "listen: %s:%s", addr, port);
 
-  fd = accept(lfd, (struct sockaddr *)&sa, &salen);
+  fd = accept4(lfd, (struct sockaddr *)&sa, &salen, SOCK_CLOEXEC);
   if (fd == -1)
     err(111, "accept");
 
