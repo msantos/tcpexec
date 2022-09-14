@@ -29,7 +29,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-#define TCPEXEC_VERSION "0.2.0"
+#define TCPEXEC_VERSION "0.2.1"
 
 typedef struct {
   int verbose;
@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
 
   (void)execvp(argv[1], argv + 1);
 
-  exit(127);
+  exit(errno == ENOENT ? 127 : 126);
 }
 
 static int tcpexec_listen(const char *addr, const char *port) {
