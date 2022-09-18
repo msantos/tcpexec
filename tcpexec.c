@@ -18,7 +18,6 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdnoreturn.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -29,7 +28,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-#define TCPEXEC_VERSION "0.2.1"
+#define TCPEXEC_VERSION "0.2.2"
 
 typedef struct {
   int verbose;
@@ -44,7 +43,9 @@ static const struct option long_options[] = {
 static int tcpexec_listen(const char *addr, const char *port);
 static int setremoteenv(const tcpexec_state_t *tp, const struct sockaddr *sa);
 static int setlocalenv(const tcpexec_state_t *tp, const struct sockaddr *sa);
-static noreturn void usage(void);
+static void usage(void);
+
+extern char *__progname;
 
 int main(int argc, char *argv[]) {
   tcpexec_state_t tp = {0};
@@ -65,8 +66,11 @@ int main(int argc, char *argv[]) {
       tp.verbose++;
       break;
     case 'h':
+      usage();
+      exit(0);
     default:
       usage();
+      exit(2);
     }
   }
 
@@ -75,6 +79,7 @@ int main(int argc, char *argv[]) {
 
   if (argc < 2) {
     usage();
+    exit(2);
   }
 
   /* 8888
@@ -91,6 +96,7 @@ int main(int argc, char *argv[]) {
     p = strchr(addr, ']');
     if (p == NULL) {
       usage();
+      exit(2);
     }
     *p++ = '\0';
   }
@@ -296,11 +302,12 @@ static int setlocalenv(const tcpexec_state_t *tp, const struct sockaddr *sa) {
   return -1;
 }
 
-static noreturn void usage() {
-  errx(EXIT_FAILURE,
-       "[OPTION] [<IPADDR>:]<PORT> <COMMAND> <...>\n"
-       "version: %s\n"
-       "-v, --verbose             write additional messages to stderr\n"
-       "-h, --help                usage summary",
-       TCPEXEC_VERSION);
+static void usage() {
+  (void)fprintf(
+      stderr,
+      "%s: [OPTION] [<IPADDR>:]<PORT> <COMMAND> <...>\n"
+      "version: %s\n"
+      "-v, --verbose             write additional messages to stderr\n"
+      "-h, --help                usage summary\n",
+      __progname, TCPEXEC_VERSION);
 }
