@@ -302,7 +302,7 @@ static int setlocalenv(const tcpexec_state_t *tp, const struct sockaddr *sa) {
   return -1;
 }
 
-static void usage() {
+static void usage(void) {
   (void)fprintf(
       stderr,
       "%s: [OPTION] [<IPADDR>:]<PORT> <COMMAND> <...>\n"
