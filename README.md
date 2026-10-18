@@ -30,15 +30,17 @@ $ tcpexec ::1:9090 env
 
 An echo server allowing 3 concurrent connections:
 
-    service/
-    ├── echo1
-    │   └── run
-    ├── echo2
-    │   └── run
-    └── echo3
-        └── run
+```
+service/
+├── echo1
+│   └── run
+├── echo2
+│   └── run
+└── echo3
+    └── run
+```
 
-*  service/echo1/run
+* service/echo1/run
 
 ```
 #!/bin/sh
@@ -64,14 +66,18 @@ exec tcpexec 127.0.0.1:9090 cat
 
 Then run:
 
-    svscan service
+```
+svscan service
+```
 
 # Build
 
-    make
+```
+make
 
-    #### static executable using musl
-    ./musl-make
+#### static executable using musl
+./musl-make
+```
 
 # OPTIONS
 
