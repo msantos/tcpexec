@@ -18,7 +18,7 @@ TCP socket:
 
 ## echo server
 
-```
+```bash
 $ tcpexec 9090 cat
 
 $ tcpexec 127.0.0.1:9090 cat
@@ -30,7 +30,7 @@ $ tcpexec ::1:9090 env
 
 An echo server allowing 3 concurrent connections:
 
-```
+```bash
 service/
 ├── echo1
 │   └── run
@@ -42,7 +42,7 @@ service/
 
 * service/echo1/run
 
-```
+```bash
 #!/bin/sh
 
 exec tcpexec 127.0.0.1:9090 cat
@@ -50,7 +50,7 @@ exec tcpexec 127.0.0.1:9090 cat
 
 * service/echo2/run
 
-```
+```bash
 #!/bin/sh
 
 exec tcpexec 127.0.0.1:9090 cat
@@ -58,7 +58,7 @@ exec tcpexec 127.0.0.1:9090 cat
 
 * service/echo3/run
 
-```
+```bash
 #!/bin/sh
 
 exec tcpexec 127.0.0.1:9090 cat
@@ -66,13 +66,13 @@ exec tcpexec 127.0.0.1:9090 cat
 
 Then run:
 
-```
+```bash
 svscan service
 ```
 
 # Build
 
-```
+```bash
 make
 
 #### static executable using musl
