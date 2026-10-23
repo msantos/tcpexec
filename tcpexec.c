@@ -107,9 +107,8 @@ int main(int argc, char *argv[]) {
     addr = "::";
   } else {
     *port++ = '\0';
-    if (*addr == '\0') {
+    if (*addr == '\0')
       addr = "::";
-    }
   }
 
   lfd = tcpexec_listen(addr, port);
