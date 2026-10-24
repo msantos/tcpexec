@@ -28,7 +28,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-#define TCPEXEC_VERSION "0.2.2"
+#define TCPEXEC_VERSION "0.2.3"
 
 typedef struct {
   int verbose;
